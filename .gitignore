@@ -1,0 +1,27 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Claude Code
+.claude/
+
+# Excel files (test/output data — not source code)
+*.xlsx
+*.xls
+*.csv
+
+# Session data (per-instance, not shared)
+userdata/
+
+# Test/verification scripts (not part of the app)
+tests/
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+desktop.ini
