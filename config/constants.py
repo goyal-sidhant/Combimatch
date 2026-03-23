@@ -136,13 +136,20 @@ SEED_MARKER = "[SEED]"
 # Window Layout
 # ---------------------------------------------------------------------------
 
-# Minimum window dimensions in pixels.
-WINDOW_MIN_WIDTH = 1000
-WINDOW_MIN_HEIGHT = 700
+# Minimum window dimensions as fraction of screen size.
+# Actual pixel values computed at runtime by main_window.py using
+# get_screen_width()/get_screen_height() from gui/styles.py.
+WINDOW_MIN_WIDTH_FRACTION = 0.55   # 55% of screen width
+WINDOW_MIN_HEIGHT_FRACTION = 0.60  # 60% of screen height
 
-# Initial widths for the three-panel horizontal splitter in the Find tab.
+# Fallback pixel values if screen size is not yet available.
+WINDOW_MIN_WIDTH_FALLBACK = 900
+WINDOW_MIN_HEIGHT_FALLBACK = 600
+
+# Splitter panel proportions for the three-panel Find tab layout.
 # [left panel (input), middle panel (results), right panel (source/info)]
-SPLITTER_SIZES = [280, 380, 320]
+# These are ratios — actual pixel widths computed at runtime.
+SPLITTER_RATIOS = [0.28, 0.40, 0.32]
 
 
 # ---------------------------------------------------------------------------

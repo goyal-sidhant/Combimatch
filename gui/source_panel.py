@@ -49,7 +49,7 @@ from gui.combo_info_panel import ComboInfoPanel
 from gui.styles import (
     COLOR_SELECTED_HIGHLIGHT, COLOR_SELECTED_BORDER,
     COLOR_TEXT_SECONDARY, COLOR_ACCENT, COLOR_TEXT_PRIMARY,
-    scaled_size,
+    scaled_size, scaled_px,
 )
 
 
@@ -136,7 +136,7 @@ class ScrollbarMarkerOverlay(QWidget):
         self._finalized_markers: List[tuple] = []  # (position, r, g, b)
         self.setAttribute(Qt.WA_TransparentForMouseEvents)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setFixedWidth(14)
+        self.setFixedWidth(scaled_px(14))
 
     def set_highlighted_positions(self, indices: Set[int], total_items: int):
         """
@@ -255,8 +255,9 @@ class SourcePanel(QWidget):
         CALLED BY: __init__()
         """
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(8)
+        m = scaled_px(12)
+        layout.setContentsMargins(m, m, m, m)
+        layout.setSpacing(scaled_px(8))
 
         # --- Header with count and total ---
         header_layout = QHBoxLayout()
@@ -274,7 +275,7 @@ class SourcePanel(QWidget):
         self._sticky_header.setStyleSheet(
             f"font-weight: bold; font-size: {scaled_size(12)}px; "
             f"color: {COLOR_ACCENT}; background-color: #EEF2F7; "
-            f"padding: 4px 8px; border: 1px solid #D1D5DB; border-radius: 3px;"
+            f"padding: {scaled_px(4)}px {scaled_px(8)}px; border: 1px solid #D1D5DB; border-radius: {scaled_px(3)}px;"
         )
         self._sticky_header.setWordWrap(True)
         self._sticky_header.hide()

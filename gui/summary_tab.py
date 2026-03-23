@@ -40,7 +40,7 @@ from utils.format_helpers import format_number_indian, format_difference
 from gui.styles import (
     COLOR_ACCENT, COLOR_TEXT_SECONDARY, COLOR_TEXT_PRIMARY,
     COLOR_ERROR, COLOR_SUCCESS, COLOR_PANEL_BG, COLOR_BORDER,
-    scaled_size,
+    scaled_size, scaled_px,
 )
 
 
@@ -82,8 +82,9 @@ class SummaryTab(QWidget):
         CALLED BY: __init__()
         """
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(10)
+        m = scaled_px(12)
+        layout.setContentsMargins(m, m, m, m)
+        layout.setSpacing(scaled_px(10))
 
         # --- Header with title and undo button ---
         header_layout = QHBoxLayout()
@@ -122,7 +123,7 @@ class SummaryTab(QWidget):
         # --- Stats bar ---
         self._stats_label = QLabel("No combinations finalized yet")
         self._stats_label.setStyleSheet(
-            f"color: {COLOR_TEXT_SECONDARY}; font-size: {scaled_size(14)}px; padding: 6px;"
+            f"color: {COLOR_TEXT_SECONDARY}; font-size: {scaled_size(14)}px; padding: {scaled_px(6)}px;"
         )
         layout.addWidget(self._stats_label)
 
@@ -134,7 +135,7 @@ class SummaryTab(QWidget):
         self._cards_container = QWidget()
         self._cards_layout = QVBoxLayout(self._cards_container)
         self._cards_layout.setContentsMargins(0, 0, 0, 0)
-        self._cards_layout.setSpacing(10)
+        self._cards_layout.setSpacing(scaled_px(10))
         self._cards_layout.addStretch()  # Push cards to top
 
         scroll.setWidget(self._cards_container)
@@ -256,13 +257,13 @@ class SummaryTab(QWidget):
         card.setStyleSheet(
             f"QFrame {{ background-color: rgba({r}, {g}, {b}, 80); "
             f"border: 2px solid rgb({r}, {g}, {b}); "
-            f"border-radius: 6px; padding: 8px; }}"
+            f"border-radius: {scaled_px(6)}px; padding: {scaled_px(8)}px; }}"
             f"QLabel {{ background-color: transparent; }}"
         )
 
         card_layout = QVBoxLayout(card)
-        card_layout.setContentsMargins(12, 10, 12, 10)
-        card_layout.setSpacing(6)
+        card_layout.setContentsMargins(scaled_px(12), scaled_px(10), scaled_px(12), scaled_px(10))
+        card_layout.setSpacing(scaled_px(6))
 
         # --- Top line: number, color name, label ---
         top_layout = QHBoxLayout()
@@ -370,5 +371,5 @@ class SummaryTab(QWidget):
 
         self._stats_label.setText("  |  ".join(stats_parts))
         self._stats_label.setStyleSheet(
-            f"color: {COLOR_SUCCESS}; font-size: {scaled_size(14)}px; padding: 6px; font-weight: bold;"
+            f"color: {COLOR_SUCCESS}; font-size: {scaled_size(14)}px; padding: {scaled_px(6)}px; font-weight: bold;"
         )

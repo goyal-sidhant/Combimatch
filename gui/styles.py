@@ -22,6 +22,7 @@ CHANGE LOG:
 |------------|-------------------------------------------|----------------------------------|
 | 22-03-2026 | Created — application stylesheet          | Sub-phase 1C app shell           |
 | 22-03-2026 | Scaled fonts, soft cream background        | UI fixes before Phase 3          |
+| 23-03-2026 | Full responsive scaling (px, padding, margins) | Layout breaks on different screens |
 """
 
 
@@ -69,30 +70,33 @@ COLOR_PROGRESS_FILL = "#6B7FD7"      # Progress bar fill
 # Font Scaling
 # ---------------------------------------------------------------------------
 
-# Default font scale factor — updated by compute_font_scale() after
-# QApplication is created and screen geometry is available.
+# Scale factors — updated by compute_font_scale() after QApplication
+# is created and screen geometry is available.
 _font_scale: float = 1.0
+_screen_width: int = 1920
+_screen_height: int = 1080
 
 
 def compute_font_scale() -> float:
     """
     WHAT:
-        Computes a font scale factor based on the primary screen's height.
-        Reference: 1.0x at 1080px height. Smaller screens get smaller text,
-        larger screens get larger text. Clamped between 0.80 and 1.30.
+        Computes scale factors based on the primary screen's dimensions.
+        Reference: 1.0x at 1920x1080. Smaller screens get smaller values,
+        larger screens get larger values. Font scale clamped 0.75–1.30.
+        Also stores screen dimensions for proportional layout calculations.
 
     WHY ADDED:
-        Fixed pixel font sizes look too small on smaller screens and
-        waste space on larger ones. Scaling to screen height gives a
-        comfortable reading size on every display.
+        Fixed pixel sizes look correct on the developer's screen but break
+        on smaller office monitors (1366x768) and nComputing displays.
+        Scaling everything to screen size gives consistent appearance.
 
     CALLED BY:
         → main.py → after QApplication is created, before get_stylesheet()
 
     RETURNS:
-        float: Scale factor (e.g. 0.90, 1.0, 1.15).
+        float: Font scale factor (e.g. 0.90, 1.0, 1.15).
     """
-    global _font_scale
+    global _font_scale, _screen_width, _screen_height
 
     try:
         from PyQt5.QtWidgets import QApplication
@@ -100,10 +104,12 @@ def compute_font_scale() -> float:
         if app is not None:
             screen = app.primaryScreen()
             if screen is not None:
-                height = screen.availableGeometry().height()
+                geom = screen.availableGeometry()
+                _screen_width = geom.width()
+                _screen_height = geom.height()
                 # Reference: 1.0x at 1080px height
-                raw_scale = height / 1080.0
-                _font_scale = max(0.80, min(1.30, raw_scale))
+                raw_scale = _screen_height / 1080.0
+                _font_scale = max(0.75, min(1.30, raw_scale))
     except Exception:
         _font_scale = 1.0
 
@@ -112,8 +118,8 @@ def compute_font_scale() -> float:
 
 def scaled_size(base_px: int) -> int:
     """
-    WHAT: Scales a base pixel size by the current font scale factor.
-    CALLED BY: _build_stylesheet() — for all font-size values.
+    WHAT: Scales a font size by the current font scale factor.
+    CALLED BY: _build_stylesheet(), gui panels for inline font-size values.
 
     PARAMETERS:
         base_px (int): Base size in pixels (designed for 1080p).
@@ -122,6 +128,40 @@ def scaled_size(base_px: int) -> int:
         int: Scaled size in pixels, minimum 9px.
     """
     return max(9, int(base_px * _font_scale))
+
+
+def scaled_px(base_px: int) -> int:
+    """
+    WHAT:
+        Scales a non-font dimension (padding, margin, widget size) by the
+        screen scale factor. Used for all hardcoded pixel values in layouts
+        so they adapt to different screen resolutions.
+
+    WHY ADDED:
+        Fixed pixel padding/margins/widget sizes that look correct on
+        1080p overflow or look cramped on other resolutions.
+
+    CALLED BY:
+        → _build_stylesheet() — for all padding/margin QSS values
+        → gui panels — for setContentsMargins, setSpacing, setFixedSize, etc.
+
+    PARAMETERS:
+        base_px (int): Base dimension in pixels (designed for 1080p).
+
+    RETURNS:
+        int: Scaled dimension in pixels, minimum 1px.
+    """
+    return max(1, int(base_px * _font_scale))
+
+
+def get_screen_width() -> int:
+    """WHAT: Returns the primary screen's available width in pixels."""
+    return _screen_width
+
+
+def get_screen_height() -> int:
+    """WHAT: Returns the primary screen's available height in pixels."""
+    return _screen_height
 
 
 # ---------------------------------------------------------------------------
@@ -140,6 +180,9 @@ def _build_stylesheet() -> str:
     RETURNS:
         str: Complete QSS stylesheet string.
     """
+    # Shorthand for scaled padding/margin values in QSS
+    p = scaled_px
+
     return f"""
 /* === Global === */
 QWidget {{
@@ -158,7 +201,7 @@ QMainWindow {{
 QTabWidget::pane {{
     border: 1px solid {COLOR_BORDER};
     background-color: {COLOR_PANEL_BG};
-    border-radius: 4px;
+    border-radius: {p(4)}px;
     top: -1px;
 }}
 
@@ -167,11 +210,11 @@ QTabBar::tab {{
     color: {COLOR_TEXT_SECONDARY};
     border: 1px solid {COLOR_BORDER};
     border-bottom: none;
-    padding: 10px 24px;
-    margin-right: 2px;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    min-width: 90px;
+    padding: {p(10)}px {p(24)}px;
+    margin-right: {p(2)}px;
+    border-top-left-radius: {p(4)}px;
+    border-top-right-radius: {p(4)}px;
+    min-width: {p(90)}px;
     font-size: {scaled_size(15)}px;
 }}
 
@@ -192,10 +235,10 @@ QPushButton {{
     background-color: {COLOR_ACCENT};
     color: white;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    padding: {p(10)}px {p(20)}px;
+    border-radius: {p(5)}px;
     font-weight: bold;
-    min-height: 24px;
+    min-height: {p(24)}px;
     font-size: {scaled_size(15)}px;
 }}
 
@@ -227,8 +270,8 @@ QPushButton[flat="true"]:hover {{
 QLineEdit, QTextEdit, QPlainTextEdit {{
     background-color: #FFFFFF;
     border: 1px solid {COLOR_BORDER};
-    border-radius: 4px;
-    padding: 7px 10px;
+    border-radius: {p(4)}px;
+    padding: {p(7)}px {p(10)}px;
     color: {COLOR_TEXT_PRIMARY};
     font-size: {scaled_size(15)}px;
 }}
@@ -246,9 +289,9 @@ QLineEdit:disabled, QTextEdit:disabled {{
 QSpinBox {{
     background-color: #FFFFFF;
     border: 1px solid {COLOR_BORDER};
-    border-radius: 4px;
-    padding: 6px 10px;
-    min-width: 70px;
+    border-radius: {p(4)}px;
+    padding: {p(6)}px {p(10)}px;
+    min-width: {p(70)}px;
     font-size: {scaled_size(15)}px;
 }}
 
@@ -257,7 +300,7 @@ QSpinBox:focus {{
 }}
 
 QSpinBox::up-button, QSpinBox::down-button {{
-    width: 18px;
+    width: {p(18)}px;
     border: none;
 }}
 
@@ -265,9 +308,9 @@ QSpinBox::up-button, QSpinBox::down-button {{
 QComboBox {{
     background-color: #FFFFFF;
     border: 1px solid {COLOR_BORDER};
-    border-radius: 4px;
-    padding: 6px 10px;
-    min-width: 100px;
+    border-radius: {p(4)}px;
+    padding: {p(6)}px {p(10)}px;
+    min-width: {p(100)}px;
     font-size: {scaled_size(15)}px;
 }}
 
@@ -277,7 +320,7 @@ QComboBox:focus {{
 
 QComboBox::drop-down {{
     border: none;
-    width: 22px;
+    width: {p(22)}px;
 }}
 
 QComboBox QAbstractItemView {{
@@ -291,14 +334,14 @@ QComboBox QAbstractItemView {{
 QListWidget {{
     background-color: {COLOR_PANEL_BG};
     border: 1px solid {COLOR_BORDER};
-    border-radius: 4px;
-    padding: 4px;
+    border-radius: {p(4)}px;
+    padding: {p(4)}px;
     outline: none;
     font-size: {scaled_size(15)}px;
 }}
 
 QListWidget::item {{
-    padding: 7px 10px;
+    padding: {p(7)}px {p(10)}px;
     border-bottom: 1px solid {COLOR_BACKGROUND};
 }}
 
@@ -315,32 +358,32 @@ QListWidget::item:hover:!selected {{
 QGroupBox {{
     font-weight: bold;
     border: 1px solid {COLOR_BORDER};
-    border-radius: 4px;
-    margin-top: 10px;
-    padding-top: 20px;
+    border-radius: {p(4)}px;
+    margin-top: {p(10)}px;
+    padding-top: {p(20)}px;
     font-size: {scaled_size(15)}px;
 }}
 
 QGroupBox::title {{
     subcontrol-origin: margin;
     subcontrol-position: top left;
-    left: 10px;
-    padding: 0 6px;
+    left: {p(10)}px;
+    padding: 0 {p(6)}px;
     color: {COLOR_ACCENT};
 }}
 
 /* === Labels === */
 QLabel {{
     background-color: transparent;
-    padding: 2px;
+    padding: {p(2)}px;
     font-size: {scaled_size(15)}px;
 }}
 
 /* === Splitter === */
 QSplitter::handle {{
     background-color: {COLOR_BORDER};
-    width: 3px;
-    margin: 2px 1px;
+    width: {p(3)}px;
+    margin: {p(2)}px {p(1)}px;
 }}
 
 QSplitter::handle:hover {{
@@ -351,31 +394,31 @@ QSplitter::handle:hover {{
 QProgressBar {{
     background-color: {COLOR_PROGRESS_BG};
     border: none;
-    border-radius: 4px;
+    border-radius: {p(4)}px;
     text-align: center;
-    height: 22px;
+    height: {p(22)}px;
     font-size: {scaled_size(13)}px;
     color: {COLOR_TEXT_SECONDARY};
 }}
 
 QProgressBar::chunk {{
     background-color: {COLOR_PROGRESS_FILL};
-    border-radius: 4px;
+    border-radius: {p(4)}px;
 }}
 
 /* === Scroll Bars === */
 QScrollBar:vertical {{
     background-color: {COLOR_BACKGROUND};
-    width: 10px;
+    width: {p(10)}px;
     margin: 0;
     border: none;
 }}
 
 QScrollBar::handle:vertical {{
     background-color: {COLOR_BORDER};
-    min-height: 30px;
-    border-radius: 5px;
-    margin: 2px;
+    min-height: {p(30)}px;
+    border-radius: {p(5)}px;
+    margin: {p(2)}px;
 }}
 
 QScrollBar::handle:vertical:hover {{
@@ -388,16 +431,16 @@ QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
 
 QScrollBar:horizontal {{
     background-color: {COLOR_BACKGROUND};
-    height: 10px;
+    height: {p(10)}px;
     margin: 0;
     border: none;
 }}
 
 QScrollBar::handle:horizontal {{
     background-color: {COLOR_BORDER};
-    min-width: 30px;
-    border-radius: 5px;
-    margin: 2px;
+    min-width: {p(30)}px;
+    border-radius: {p(5)}px;
+    margin: {p(2)}px;
 }}
 
 QScrollBar::handle:horizontal:hover {{
@@ -414,7 +457,7 @@ QStatusBar {{
     border-top: 1px solid {COLOR_BORDER};
     color: {COLOR_TEXT_SECONDARY};
     font-size: {scaled_size(13)}px;
-    padding: 4px;
+    padding: {p(4)}px;
 }}
 
 /* === Tool Tips === */
@@ -422,14 +465,14 @@ QToolTip {{
     background-color: {COLOR_TEXT_PRIMARY};
     color: white;
     border: none;
-    padding: 6px 10px;
-    border-radius: 3px;
+    padding: {p(6)}px {p(10)}px;
+    border-radius: {p(3)}px;
     font-size: {scaled_size(13)}px;
 }}
 
 /* === Form Layout === */
 QFormLayout {{
-    spacing: 10px;
+    spacing: {p(10)}px;
 }}
 """
 

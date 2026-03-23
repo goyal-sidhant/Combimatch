@@ -47,7 +47,7 @@ from utils.format_helpers import format_number_indian, format_difference
 from gui.styles import (
     COLOR_ACCENT, COLOR_SUCCESS, COLOR_WARNING,
     COLOR_TEXT_SECONDARY, COLOR_HEADER_BG, COLOR_TEXT_PRIMARY,
-    COLOR_PANEL_BG, scaled_size,
+    COLOR_PANEL_BG, scaled_size, scaled_px,
 )
 
 
@@ -105,8 +105,9 @@ class ResultsPanel(QWidget):
         CALLED BY: __init__()
         """
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(8)
+        m = scaled_px(12)
+        layout.setContentsMargins(m, m, m, m)
+        layout.setSpacing(scaled_px(8))
 
         # Title
         title = QLabel("Results")
@@ -120,7 +121,7 @@ class ResultsPanel(QWidget):
         exact_container = QWidget()
         exact_layout = QVBoxLayout(exact_container)
         exact_layout.setContentsMargins(0, 0, 0, 0)
-        exact_layout.setSpacing(2)
+        exact_layout.setSpacing(scaled_px(2))
 
         self._exact_header = QLabel("Exact Matches (0)")
         self._exact_header.setStyleSheet(
@@ -140,7 +141,7 @@ class ResultsPanel(QWidget):
         approx_container = QWidget()
         approx_layout = QVBoxLayout(approx_container)
         approx_layout.setContentsMargins(0, 0, 0, 0)
-        approx_layout.setSpacing(2)
+        approx_layout.setSpacing(scaled_px(2))
 
         self._approx_header = QLabel("Approximate Matches (0)")
         self._approx_header.setStyleSheet(
@@ -157,7 +158,8 @@ class ResultsPanel(QWidget):
         splitter.addWidget(approx_container)
 
         # Give exact matches more space by default
-        splitter.setSizes([300, 200])
+        # 60/40 split: exact matches get more space
+        splitter.setSizes([600, 400])
         layout.addWidget(splitter, 1)
 
         # --- Finalize / Deselect buttons ---
@@ -167,7 +169,7 @@ class ResultsPanel(QWidget):
         self._finalize_button.setEnabled(False)
         self._finalize_button.setStyleSheet(
             f"QPushButton {{ background-color: {COLOR_SUCCESS}; color: white; "
-            f"font-weight: bold; padding: 10px; font-size: {scaled_size(15)}px; }}"
+            f"font-weight: bold; padding: {scaled_px(10)}px; font-size: {scaled_size(15)}px; }}"
             f"QPushButton:hover {{ background-color: #059669; }}"
             f"QPushButton:disabled {{ background-color: #D1D5DB; color: #9CA3AF; }}"
         )

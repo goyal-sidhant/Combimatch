@@ -45,11 +45,12 @@ from PyQt5.QtGui import QScreen
 
 # Group 3: This project's modules
 from config.constants import (
-    WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT, EXCEL_MONITOR_INTERVAL,
-    UNMATCHED_COLOR, SESSION_AUTOSAVE_INTERVAL,
+    WINDOW_MIN_WIDTH_FRACTION, WINDOW_MIN_HEIGHT_FRACTION,
+    WINDOW_MIN_WIDTH_FALLBACK, WINDOW_MIN_HEIGHT_FALLBACK,
+    EXCEL_MONITOR_INTERVAL, UNMATCHED_COLOR, SESSION_AUTOSAVE_INTERVAL,
 )
 from core.session_manager import SessionManager
-from gui.styles import COLOR_TEXT_SECONDARY, scaled_size
+from gui.styles import COLOR_TEXT_SECONDARY, scaled_size, get_screen_width, get_screen_height
 from gui.find_tab import FindTab
 from gui.summary_tab import SummaryTab
 from gui.settings_tab import SettingsTab
@@ -90,7 +91,13 @@ class MainWindow(QMainWindow):
         """
         super().__init__(parent)
         self.setWindowTitle("CombiMatch")
-        self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
+
+        # Compute proportional minimum size from screen dimensions
+        sw = get_screen_width()
+        sh = get_screen_height()
+        min_w = max(WINDOW_MIN_WIDTH_FALLBACK, int(sw * WINDOW_MIN_WIDTH_FRACTION))
+        min_h = max(WINDOW_MIN_HEIGHT_FALLBACK, int(sh * WINDOW_MIN_HEIGHT_FRACTION))
+        self.setMinimumSize(min_w, min_h)
 
         self._setup_ui()
         self._center_on_screen()

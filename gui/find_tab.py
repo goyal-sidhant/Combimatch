@@ -44,7 +44,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, pyqtSignal
 
 # Group 3: This project's modules
-from config.constants import SPLITTER_SIZES
+from config.constants import SPLITTER_RATIOS
+from gui.styles import scaled_px, get_screen_width
 from gui.input_panel import InputPanel
 from gui.results_panel import ResultsPanel
 from gui.source_panel import SourcePanel
@@ -115,7 +116,8 @@ class FindTab(QWidget):
         CALLED BY: __init__()
         """
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
+        m = scaled_px(8)
+        layout.setContentsMargins(m, m, m, m)
 
         self._splitter = QSplitter(Qt.Horizontal)
 
@@ -126,7 +128,9 @@ class FindTab(QWidget):
         self._splitter.addWidget(self._input_panel)
         self._splitter.addWidget(self._results_panel)
         self._splitter.addWidget(self._source_panel)
-        self._splitter.setSizes(SPLITTER_SIZES)
+        # Compute proportional splitter widths from available screen width
+        total = get_screen_width()
+        self._splitter.setSizes([int(r * total) for r in SPLITTER_RATIOS])
 
         layout.addWidget(self._splitter)
 

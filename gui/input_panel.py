@@ -37,7 +37,7 @@ from typing import List
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit,
     QComboBox, QLineEdit, QSpinBox, QPushButton, QProgressBar,
-    QGroupBox, QFormLayout, QMessageBox,
+    QGroupBox, QFormLayout, QMessageBox, QSizePolicy,
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 
@@ -49,7 +49,7 @@ from config.constants import (
 from config.mappings import SEARCH_ORDER_OPTIONS
 from core.number_parser import parse_numbers_line_separated, parse_numbers_semicolon_separated
 from utils.format_helpers import format_number_indian
-from gui.styles import COLOR_ERROR, COLOR_SUCCESS, COLOR_TEXT_SECONDARY, scaled_size
+from gui.styles import COLOR_ERROR, COLOR_SUCCESS, COLOR_TEXT_SECONDARY, scaled_size, scaled_px
 
 
 class InputPanel(QWidget):
@@ -95,8 +95,9 @@ class InputPanel(QWidget):
         CALLED BY: __init__()
         """
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(10)
+        m = scaled_px(12)
+        layout.setContentsMargins(m, m, m, m)
+        layout.setSpacing(scaled_px(10))
 
         # --- Input Mode ---
         mode_layout = QHBoxLayout()
@@ -119,7 +120,7 @@ class InputPanel(QWidget):
             "Or switch to semicolon mode:\n"
             "  100; 200.50; 1,00,000"
         )
-        self._text_area.setMinimumHeight(100)
+        self._text_area.setMinimumHeight(scaled_px(100))
         layout.addWidget(self._text_area, 1)
 
         # --- Load / Grab Buttons + Status ---
@@ -145,7 +146,7 @@ class InputPanel(QWidget):
         # --- Search Parameters Group ---
         params_group = QGroupBox("Search Parameters")
         params_layout = QFormLayout(params_group)
-        params_layout.setSpacing(10)
+        params_layout.setSpacing(scaled_px(10))
         # Prevent fields from expanding the layout beyond the panel width
         params_layout.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
 
@@ -170,6 +171,7 @@ class InputPanel(QWidget):
         )
         self._min_hint_label.setMinimumWidth(0)
         self._min_hint_label.setWordWrap(True)
+        self._min_hint_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         min_size_row.addWidget(self._min_size_spin)
         min_size_row.addWidget(self._min_hint_label, 1)
         params_layout.addRow("Min Size:", min_size_row)
@@ -185,6 +187,7 @@ class InputPanel(QWidget):
         )
         self._max_hint_label.setMinimumWidth(0)
         self._max_hint_label.setWordWrap(True)
+        self._max_hint_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         max_size_row.addWidget(self._max_size_spin)
         max_size_row.addWidget(self._max_hint_label, 1)
         params_layout.addRow("Max Size:", max_size_row)
@@ -208,6 +211,7 @@ class InputPanel(QWidget):
         )
         self._seed_info_label.setWordWrap(True)
         self._seed_info_label.setMinimumWidth(0)
+        self._seed_info_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         params_layout.addRow("", self._seed_info_label)
 
         # Bounds summary — search space estimate + no-solution warning
@@ -215,6 +219,7 @@ class InputPanel(QWidget):
         self._bounds_hint_label.setStyleSheet(f"color: {COLOR_TEXT_SECONDARY}; font-size: {scaled_size(13)}px;")
         self._bounds_hint_label.setWordWrap(True)
         self._bounds_hint_label.setMinimumWidth(0)
+        self._bounds_hint_label.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
         params_layout.addRow("", self._bounds_hint_label)
 
         layout.addWidget(params_group)

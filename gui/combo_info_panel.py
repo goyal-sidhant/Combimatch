@@ -32,11 +32,12 @@ from PyQt5.QtCore import Qt
 # Group 3: This project's modules
 from models.combination import Combination
 from utils.format_helpers import format_number_indian, format_difference
-from gui.styles import COLOR_TEXT_SECONDARY, COLOR_SUCCESS, COLOR_ACCENT, scaled_size
+from gui.styles import COLOR_TEXT_SECONDARY, COLOR_SUCCESS, COLOR_ACCENT, scaled_size, scaled_px
 
 
 # Maximum height for the combo info panel before scrolling kicks in
-COMBO_INFO_MAX_HEIGHT = 150
+# (base value — scaled by scaled_px at runtime)
+COMBO_INFO_MAX_HEIGHT_BASE = 150
 
 
 class ComboInfoPanel(QWidget):
@@ -82,8 +83,9 @@ class ComboInfoPanel(QWidget):
         # --- Group box ---
         self._group = QGroupBox("Selected Combination")
         group_layout = QVBoxLayout(self._group)
-        group_layout.setContentsMargins(8, 8, 8, 8)
-        group_layout.setSpacing(4)
+        m = scaled_px(8)
+        group_layout.setContentsMargins(m, m, m, m)
+        group_layout.setSpacing(scaled_px(4))
 
         # Summary line (sum, difference, count) — always visible, outside scroll
         self._summary_label = QLabel("No combination selected")
@@ -95,7 +97,7 @@ class ComboInfoPanel(QWidget):
         self._scroll_area = QScrollArea()
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setFrameShape(QScrollArea.NoFrame)
-        self._scroll_area.setMaximumHeight(COMBO_INFO_MAX_HEIGHT)
+        self._scroll_area.setMaximumHeight(scaled_px(COMBO_INFO_MAX_HEIGHT_BASE))
         self._scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self._scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 

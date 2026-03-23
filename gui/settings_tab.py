@@ -40,7 +40,7 @@ from readers.excel_workbook_manager import WorkbookManager
 from gui.styles import (
     COLOR_ACCENT, COLOR_TEXT_SECONDARY, COLOR_TEXT_PRIMARY,
     COLOR_SUCCESS, COLOR_ERROR, COLOR_PANEL_BG, COLOR_BORDER,
-    scaled_size,
+    scaled_size, scaled_px,
 )
 
 
@@ -93,13 +93,14 @@ class SettingsTab(QWidget):
         CALLED BY: __init__()
         """
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(12, 12, 12, 12)
-        layout.setSpacing(12)
+        m = scaled_px(12)
+        layout.setContentsMargins(m, m, m, m)
+        layout.setSpacing(m)
 
         # --- Excel Connection Group ---
         conn_group = QGroupBox("Excel Connection")
         conn_layout = QVBoxLayout(conn_group)
-        conn_layout.setSpacing(10)
+        conn_layout.setSpacing(scaled_px(10))
 
         # Status indicator
         status_layout = QHBoxLayout()
@@ -135,7 +136,7 @@ class SettingsTab(QWidget):
         # --- Workbooks & Sheets Group ---
         wb_group = QGroupBox("Workbooks && Sheets")
         wb_layout = QVBoxLayout(wb_group)
-        wb_layout.setSpacing(8)
+        wb_layout.setSpacing(scaled_px(8))
 
         # Refresh button
         refresh_layout = QHBoxLayout()
@@ -157,7 +158,7 @@ class SettingsTab(QWidget):
         self._tree.setHeaderHidden(True)
         self._tree.setRootIsDecorated(True)
         self._tree.setAnimated(True)
-        self._tree.setMinimumHeight(150)
+        self._tree.setMinimumHeight(scaled_px(150))
         self._tree.itemChanged.connect(self._on_tree_item_changed)
         wb_layout.addWidget(self._tree, 1)
 
@@ -168,7 +169,7 @@ class SettingsTab(QWidget):
         )
         hint.setStyleSheet(
             f"color: {COLOR_TEXT_SECONDARY}; font-size: {scaled_size(13)}px; "
-            f"font-style: italic; padding: 4px;"
+            f"font-style: italic; padding: {scaled_px(4)}px;"
         )
         hint.setWordWrap(True)
         wb_layout.addWidget(hint)
@@ -180,13 +181,13 @@ class SettingsTab(QWidget):
         colors_layout = QVBoxLayout(colors_group)
 
         palette_grid = QGridLayout()
-        palette_grid.setSpacing(4)
+        palette_grid.setSpacing(scaled_px(4))
 
         for idx, (rgb, name) in enumerate(HIGHLIGHT_COLORS):
             row = idx // 10
             col = idx % 10
             swatch = QFrame()
-            swatch.setFixedSize(28, 28)
+            swatch.setFixedSize(scaled_px(28), scaled_px(28))
             r, g, b = rgb
             swatch.setStyleSheet(
                 f"background-color: rgb({r}, {g}, {b}); "
