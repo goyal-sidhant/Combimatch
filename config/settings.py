@@ -7,7 +7,8 @@ PURPOSE: Runtime paths, directory locations, and environment-specific
          is installed or how it's deployed.
 
 CONTAINS:
-- get_app_directory()        — Returns the folder where main.py lives
+- get_app_directory()        — Returns the folder where the exe / main.py lives
+- get_bundle_directory()     — Returns where PyInstaller extracted bundled files
 - get_userdata_directory()   — Returns the userdata/ folder path (creates if missing)
 - get_session_file_path()    — Returns the full path to the session save file
 - get_dll_path()             — Returns the expected path to solver.dll
@@ -24,6 +25,7 @@ CHANGE LOG:
 | Date       | Change                                    | Why                              |
 |------------|-------------------------------------------|----------------------------------|
 | 22-03-2026 | Created — paths and directory helpers     | Project skeleton setup (Phase 1A)|
+| 16-04-2026 | Added get_bundle_directory() for frozen   | solver.dll lives in _MEIPASS     |
 """
 
 # Group 1: Python standard library
@@ -68,6 +70,43 @@ def get_app_directory() -> str:
 
     # Normal Python run: this file is at config/settings.py,
     # so go up one level to reach the project root.
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def get_bundle_directory() -> str:
+    """
+    WHAT:
+        Returns the directory where PyInstaller extracted bundled files
+        (solver.dll, data files, etc.) at runtime. When NOT frozen,
+        this returns the same as get_app_directory() so the app works
+        identically during development.
+
+    WHY ADDED:
+        In onefile mode, PyInstaller extracts bundled binaries to a
+        temporary folder (sys._MEIPASS), NOT next to the .exe.
+        get_app_directory() returns the exe's folder — correct for
+        user-created data (userdata/) but wrong for bundled resources
+        like solver.dll. This function returns the right path for
+        bundled resources.
+
+    CALLED BY:
+        → get_dll_path()
+
+    CALLS:
+        → sys._MEIPASS (PyInstaller attribute, only exists when frozen)
+
+    EDGE CASES HANDLED:
+        - Not frozen (normal Python run): returns same as get_app_directory()
+        - Frozen but _MEIPASS missing: falls back to exe directory
+
+    RETURNS:
+        str: Absolute path to the bundle extraction directory.
+    """
+    # When frozen, PyInstaller sets sys._MEIPASS to the temp extraction dir
+    if getattr(sys, 'frozen', False):
+        return getattr(sys, '_MEIPASS', os.path.dirname(sys.executable))
+
+    # Normal Python run: same as app directory
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -139,9 +178,15 @@ def get_dll_path() -> str:
         → core/solver_manager.py → checks if DLL exists, loads it
 
     CALLS:
-        → get_app_directory()
+        → get_bundle_directory()
+
+    EDGE CASES HANDLED:
+        - Frozen onefile exe: DLL is in sys._MEIPASS temp folder
+        - Normal Python run: DLL is in project root (same as before)
 
     RETURNS:
-        str: Absolute path to solver.dll in the project root.
+        str: Absolute path to solver.dll.
     """
-    return os.path.join(get_app_directory(), "solver.dll")
+    # solver.dll is a bundled resource, so use the bundle directory
+    # (which is _MEIPASS when frozen, project root when not frozen)
+    return os.path.join(get_bundle_directory(), "solver.dll")
